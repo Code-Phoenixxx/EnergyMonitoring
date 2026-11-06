@@ -1,0 +1,126 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2.0
+    container_name: energy_mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./config/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+    networks:
+      - energy_net
+    healthcheck:
+      test: ["CMD-SHELL", "mosquitto_sub -t '$$SYS/#' -C 1 -i healthcheck -W 3 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  timescaledb:
+    image: timescale/timescaledb:latest-pg16
+    container_name: energy_timescaledb
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_password_123}
+      POSTGRES_DB: ${POSTGRES_DB:-energy_monitoring}
+    ports:
+      - "5432:5432"
+    volumes:
+      - timescaledb_data:/var/lib/postgresql/data
+    networks:
+      - energy_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-energy_monitoring}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  ingestion:
+    build:
+      context: .
+      dockerfile: ingestion/Dockerfile
+    container_name: energy_ingestion
+    restart: unless-stopped
+    environment:
+      MQTT_BROKER_HOST: mosquitto
+      MQTT_BROKER_PORT: 1883
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres_password_123}@timescaledb:5432/${POSTGRES_DB:-energy_monitoring}
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - energy_net
+
+  simulator:
+    build:
+      context: .
+      dockerfile: simulator/Dockerfile
+    container_name: energy_simulator
+    restart: unless-stopped
+    environment:
+      MQTT_BROKER_HOST: mosquitto
+      MQTT_BROKER_PORT: 1883
+    depends_on:
+      mosquitto:
+        condition: service_healthy
+    networks:
+      - energy_net
+
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    container_name: energy_api
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres_password_123}@timescaledb:5432/${POSTGRES_DB:-energy_monitoring}
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - energy_net
+
+  analytics-worker:
+    build:
+      context: .
+      dockerfile: analytics/Dockerfile
+    container_name: energy_analytics_worker
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres_password_123}@timescaledb:5432/${POSTGRES_DB:-energy_monitoring}
+    depends_on:
+      timescaledb:
+        condition: service_healthy
+    networks:
+      - energy_net
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: dashboard/Dockerfile
+    container_name: energy_dashboard
+    restart: unless-stopped
+    ports:
+      - "8501:8501"
+    environment:
+      API_URL: http://api:8000
+    depends_on:
+      - api
+    networks:
+      - energy_net
+
+networks:
+  energy_net:
+    driver: bridge
+
+volumes:
+  mosquitto_data:
+  mosquitto_log:
+  timescaledb_data:

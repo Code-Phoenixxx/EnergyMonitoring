@@ -1,0 +1,35 @@
+# Operational, Wastage Detection, and Anomaly Thresholds
+# All units: kW, minutes, percentages
+
+plant_limits:
+  contract_demand_kva: 280.0
+  # 15-minute rolling average plant active power limit in kW
+  max_demand_threshold_kw: 250.0
+  warning_demand_threshold_kw: 220.0
+  rolling_window_minutes: 15
+
+idle_wastage:
+  # Minimum continuous idle/off duration before an event is flagged as waste
+  min_idle_duration_minutes: 10.0
+  # Default threshold: percentage of rated power above which idle draw is counted as waste
+  default_idle_draw_pct_threshold: 0.15
+  # Per-machine overrides for idle threshold
+  machine_idle_pct_thresholds:
+    air_compressor: 0.20   # Compressor rated at 37 kW, idle draw normally 25-35%; above 20% flagged
+    cnc_machine: 0.08      # CNC rated at 22 kW; idle draw > 8% is flagged
+    induction_furnace: 0.10 # Furnace rated at 150 kW; idle draw > 10% is flagged
+    conveyor: 0.15         # Conveyor rated at 15 kW; idle draw > 15% is flagged
+    hvac: 0.15             # HVAC rated at 45 kW; idle draw > 15% is flagged
+    lighting: 0.20         # Lighting rated at 10 kW; idle draw > 20% is flagged
+
+anomalies:
+  isolation_forest:
+    contamination: 0.03
+    n_estimators: 100
+    random_state: 42
+    rolling_feature_window_minutes: 15
+    severity_score_bands:
+      low: 0.50
+      medium: 0.70
+      high: 0.85
+

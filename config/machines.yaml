@@ -1,0 +1,220 @@
+# Machine Specifications, Load Profiles, and Fault Injection Parameters
+# All units: kW (power), V (voltage), A (current), dimensionless (power factor)
+
+machines:
+  air_compressor:
+    machine_id: "air_compressor"
+    name: "Rotary Screw Air Compressor"
+    category: "Pneumatics"
+    rated_power_kw: 37.0
+    nominal_voltage_v: 415.0
+    phase_count: 3
+    nominal_power_factor: 0.85
+    states:
+      "OFF":
+        load_pct_min: 0.0
+        load_pct_max: 0.0
+        power_factor: 0.0
+        description: "Powered off / disconnected"
+      IDLE:
+        load_pct_min: 0.25
+        load_pct_max: 0.35
+        power_factor: 0.65
+        description: "Unloaded standby running; motor spinning without compression (25-35% rated draw)"
+      RUNNING:
+        load_pct_min: 0.75
+        load_pct_max: 0.95
+        power_factor: 0.85
+        description: "Fully loaded; actively compressing air to maintain receiver pressure"
+      FAULT:
+        load_pct_min: 0.95
+        load_pct_max: 1.15
+        power_factor: 0.80
+        description: "Overpressure or mechanical binding"
+    faults:
+      air_leak:
+        description: "Downstream air line leak causing elevated baseline idle draw and frequent load cycling"
+        idle_draw_multiplier: 1.25
+        cycle_frequency_multiplier: 1.8
+      unattended_overnight:
+        description: "Machine left powered on and idling continuously during off-shifts"
+      peak_spike:
+        description: "Sudden pressure surge causing current spike"
+        spike_multiplier: 1.6
+
+  cnc_machine:
+    machine_id: "cnc_machine"
+    name: "5-Axis CNC Milling Center"
+    category: "Machining"
+    rated_power_kw: 22.0
+    nominal_voltage_v: 415.0
+    phase_count: 3
+    nominal_power_factor: 0.88
+    states:
+      "OFF":
+        load_pct_min: 0.0
+        load_pct_max: 0.0
+        power_factor: 0.0
+        description: "Main breaker open"
+      IDLE:
+        load_pct_min: 0.10
+        load_pct_max: 0.16
+        power_factor: 0.70
+        description: "Standby; CNC controller, display, and hydraulic pack active (10-16% draw)"
+      RUNNING:
+        load_pct_min: 0.45
+        load_pct_max: 0.85
+        power_factor: 0.88
+        description: "Spindle running and axis servos driving workpiece machining"
+      FAULT:
+        load_pct_min: 0.95
+        load_pct_max: 1.20
+        power_factor: 0.82
+        description: "Tool chatter, spindle stall, or servo fault"
+    faults:
+      unattended_overnight:
+        description: "Left in idle state with servos energized overnight"
+      spindle_overload:
+        description: "Spindle bearing friction causing high current draw"
+        spike_multiplier: 1.4
+
+  induction_furnace:
+    machine_id: "induction_furnace"
+    name: "Medium-Frequency Induction Furnace"
+    category: "Thermal"
+    rated_power_kw: 150.0
+    nominal_voltage_v: 415.0
+    phase_count: 3
+    nominal_power_factor: 0.92
+    states:
+      "OFF":
+        load_pct_min: 0.0
+        load_pct_max: 0.0
+        power_factor: 0.0
+        description: "Crucible cold and power supply isolated"
+      IDLE:
+        load_pct_min: 0.12
+        load_pct_max: 0.18
+        power_factor: 0.75
+        description: "Holding mode; maintaining bath molten at minimum power between heats"
+      RUNNING:
+        load_pct_min: 0.70
+        load_pct_max: 0.98
+        power_factor: 0.92
+        description: "Full melting batch cycle"
+      FAULT:
+        load_pct_min: 1.05
+        load_pct_max: 1.25
+        power_factor: 0.88
+        description: "Coil insulation fault or thermal runaway"
+    faults:
+      peak_spike:
+        description: "Full melting power engaged during plant peak tariff window"
+        spike_multiplier: 1.15
+      extended_holding:
+        description: "Holding bath molten in idle state for over 4 hours unnecessarily"
+
+  conveyor:
+    machine_id: "conveyor"
+    name: "Main Assembly Line Conveyor"
+    category: "Material Handling"
+    rated_power_kw: 15.0
+    nominal_voltage_v: 415.0
+    phase_count: 3
+    nominal_power_factor: 0.82
+    states:
+      "OFF":
+        load_pct_min: 0.0
+        load_pct_max: 0.0
+        power_factor: 0.0
+        description: "Conveyor stopped"
+      IDLE:
+        load_pct_min: 0.25
+        load_pct_max: 0.35
+        power_factor: 0.60
+        description: "Belt running empty with no components (25-35% friction draw)"
+      RUNNING:
+        load_pct_min: 0.65
+        load_pct_max: 0.85
+        power_factor: 0.82
+        description: "Loaded belt moving assemblies through work stations"
+      FAULT:
+        load_pct_min: 0.90
+        load_pct_max: 1.15
+        power_factor: 0.75
+        description: "Mechanical jam or severe roller misalignment"
+    faults:
+      motor_degradation:
+        description: "Gradual motor bearing wear leading to 1.5% current increase per day"
+        drift_rate_per_hour: 0.001
+      running_during_breaks:
+        description: "Conveyor left running empty while workers are on meal breaks"
+
+  hvac:
+    machine_id: "hvac"
+    name: "Central Factory Chiller & AHU"
+    category: "Facility"
+    rated_power_kw: 45.0
+    nominal_voltage_v: 415.0
+    phase_count: 3
+    nominal_power_factor: 0.86
+    states:
+      "OFF":
+        load_pct_min: 0.0
+        load_pct_max: 0.0
+        power_factor: 0.0
+        description: "HVAC shutdown"
+      IDLE:
+        load_pct_min: 0.18
+        load_pct_max: 0.25
+        power_factor: 0.70
+        description: "Ventilation fans only; compressor stage decoupled"
+      RUNNING:
+        load_pct_min: 0.55
+        load_pct_max: 0.90
+        power_factor: 0.86
+        description: "Active chiller cooling with modulated compressor"
+      FAULT:
+        load_pct_min: 0.95
+        load_pct_max: 1.15
+        power_factor: 0.80
+        description: "Condenser fouling or refrigerant leak"
+    faults:
+      cooling_empty_building:
+        description: "Chiller running at full capacity on Sundays or during empty night shifts"
+      filter_clog:
+        description: "Clogged filters causing 15% higher blower work"
+        load_increase_pct: 0.15
+
+  lighting:
+    machine_id: "lighting"
+    name: "Shop Floor High-Bay LED Lighting"
+    category: "Facility"
+    rated_power_kw: 10.0
+    nominal_voltage_v: 415.0
+    phase_count: 3
+    nominal_power_factor: 0.96
+    states:
+      "OFF":
+        load_pct_min: 0.005
+        load_pct_max: 0.010
+        power_factor: 0.50
+        description: "Emergency signage only (<100 W)"
+      IDLE:
+        load_pct_min: 0.25
+        load_pct_max: 0.35
+        power_factor: 0.92
+        description: "Night security path lighting (approx 3 kW)"
+      RUNNING:
+        load_pct_min: 0.95
+        load_pct_max: 1.00
+        power_factor: 0.96
+        description: "Full production floor illumination (10 kW)"
+      FAULT:
+        load_pct_min: 0.95
+        load_pct_max: 1.05
+        power_factor: 0.94
+        description: "Power supply ballast flicker"
+    faults:
+      lights_left_on_weekend:
+        description: "High-bay luminaires left fully illuminated throughout Sunday"

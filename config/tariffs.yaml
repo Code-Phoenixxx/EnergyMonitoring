@@ -1,0 +1,55 @@
+# Time-of-Day (ToD) Industrial Tariff Configuration
+# Modeled after typical Indian Industrial HT (High Tension) Consumer Tariffs (e.g., MSEDCL, BESCOM, TNERC)
+# Currency: Indian Rupee (INR)
+
+currency: "INR"
+
+# ---------------------------------------------------------------------------
+# TIME-OF-DAY (ToD) SLOTS
+# ---------------------------------------------------------------------------
+# Change time slots or rates below to match your local power distribution company.
+# Slots cover the full 24-hour cycle.
+# ---------------------------------------------------------------------------
+time_of_day_slots:
+  - name: "off_peak"
+    start_time: "22:00"
+    end_time: "06:00"
+    rate_inr_per_kwh: 5.20
+    description: "Night off-peak rebate hours. Lowest tariff to encourage shifting flexible industrial loads."
+
+  - name: "normal"
+    start_time: "06:00"
+    end_time: "18:00"
+    rate_inr_per_kwh: 7.80
+    description: "Standard daytime commercial/industrial tariff."
+
+  - name: "peak"
+    start_time: "18:00"
+    end_time: "22:00"
+    rate_inr_per_kwh: 10.50
+    description: "Evening grid peak demand surcharge window. Maximum tariff to penalize non-essential loads."
+
+# ---------------------------------------------------------------------------
+# DEMAND AND POWER FACTOR CHARGES
+# ---------------------------------------------------------------------------
+demand_charges:
+  # Monthly billing demand charge per kVA of recorded maximum demand
+  rate_inr_per_kva_per_month: 450.00
+  # Contract demand in kVA
+  contract_demand_kva: 280.0
+  # Surcharge multiplier if actual maximum demand exceeds contract demand
+  excess_demand_penalty_multiplier: 1.50
+  # Power factor incentive/penalty benchmark
+  power_factor_benchmark: 0.95
+  # Penalty per 0.01 drop below benchmark
+  power_factor_penalty_pct_per_drop: 1.0
+
+# ---------------------------------------------------------------------------
+# TAXES AND REGULATORY CHARGES
+# ---------------------------------------------------------------------------
+taxes_and_cess:
+  # State Electricity Duty (percentage on total energy charges)
+  electricity_duty_pct: 0.093   # 9.3%
+  # Fuel and Power Purchase Cost Adjustment (FPPCA) per kWh
+  fuel_surcharge_inr_per_kwh: 0.65
+

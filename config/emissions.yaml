@@ -1,0 +1,11 @@
+# Grid Carbon Emission Factor Configuration
+# Source: Central Electricity Authority (CEA) of India - CO2 Baseline Database for the Indian Power Sector
+
+grid_emissions:
+  # Specific carbon emissions per unit of grid electricity consumed (kg CO2 / kWh)
+  factor_kg_co2_per_kwh: 0.82
+  # Conversion factor for metric tons (tCO2 / kWh)
+  factor_t_co2_per_kwh: 0.00082
+  source_authority: "Central Electricity Authority (CEA), Ministry of Power, Government of India"
+  baseline_version: "v19.0 (User-configurable for regional DISCOMs or greener captive blends)"
+

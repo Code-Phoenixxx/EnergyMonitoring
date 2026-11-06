@@ -1,0 +1,60 @@
+# Factory Simulator Configuration
+
+mqtt:
+  broker_host: "127.0.0.1"
+  broker_port: 1883
+  keepalive: 60
+  client_id: "energy_monitoring_simulator"
+  topic_template: "factory/{machine_id}/telemetry"
+  publish_interval_seconds: 2.0
+  qos: 1
+
+simulation:
+  default_speedup: 1.0
+  # Standard deviation of relative Gaussian noise added to active power (2% of nominal power)
+  gaussian_noise_std_pct: 0.02
+  # Voltage variation range (+/- 1.5% around nominal voltage)
+  voltage_variation_std_pct: 0.015
+
+shifts:
+  shift_1:
+    name: "Morning Shift"
+    start_time: "06:00"
+    end_time: "14:00"
+    active_machines: ["air_compressor", "cnc_machine", "induction_furnace", "conveyor", "hvac", "lighting"]
+    production_intensity: 0.95
+  shift_2:
+    name: "Evening Shift"
+    start_time: "14:00"
+    end_time: "22:00"
+    active_machines: ["air_compressor", "cnc_machine", "induction_furnace", "conveyor", "hvac", "lighting"]
+    production_intensity: 0.90
+  shift_3:
+    name: "Night Shift"
+    start_time: "22:00"
+    end_time: "06:00"
+    # Furnace and compressor do maintenance/reduced batching; lighting on path mode
+    active_machines: ["air_compressor", "cnc_machine", "induction_furnace", "hvac", "lighting"]
+    production_intensity: 0.50
+
+breaks:
+  - name: "Morning Tea Break"
+    start_time: "09:30"
+    end_time: "09:45"
+  - name: "Lunch Break"
+    start_time: "12:30"
+    end_time: "13:15"
+  - name: "Evening Tea Break"
+    start_time: "17:00"
+    end_time: "17:15"
+  - name: "Dinner Break"
+    start_time: "20:00"
+    end_time: "20:45"
+
+weekend_schedule:
+  # Saturday has Shift 1 and Shift 2, no Shift 3
+  saturday:
+    working_shifts: ["shift_1", "shift_2"]
+  # Sunday is plant maintenance / shutdown; machines in OFF or IDLE
+  sunday:
+    working_shifts: []
